@@ -69,7 +69,7 @@ export class Tokenizer {
 
     let longestMatch = '';
     for (let i = 1; i <= Math.min(5, this.input.length - this.position); i++) {
-      const substr = this.input.substr(this.position, i);
+      const substr = this.input.substring(this.position, i);
       if (isCustomBinaryOperator(substr)) {
         longestMatch = substr;
       }
