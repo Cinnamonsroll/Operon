@@ -138,7 +138,7 @@ const CustomItemsSearch = memo(({ handleOperator }: CustomItemsSearchProps) => {
                   filteredItems.map((item, index) => (
                     <button
                       key={`${item.type}-${item.name}-${index}`}
-                      className="w-full text-left px-3 py-2 rounded hover:opacity-80 transition-colors duration-150 flex items-center justify-between"
+                      className={`w-full text-left px-3 py-2 rounded hover:opacity-80 transition-colors duration-150 flex items-center justify-between ${index > 0 ? 'mt-2' : ''}`}
                       style={{
                         backgroundColor:
                           item.type === "constant"

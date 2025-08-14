@@ -134,7 +134,8 @@ export class Tokenizer {
 
         if (tokens.length > 0 &&
           (tokens[tokens.length - 1].type === TokenType.NUMBER ||
-            tokens[tokens.length - 1].type === TokenType.RIGHT_PAREN) &&
+            tokens[tokens.length - 1].type === TokenType.RIGHT_PAREN ||
+            tokens[tokens.length - 1].type === TokenType.POSTFIX_OP) &&
           isPostfixOperator(this.current)) {
           tokens.push({
             type: TokenType.POSTFIX_OP,
@@ -178,7 +179,8 @@ export class Tokenizer {
 
         if (tokens.length > 0 &&
           (tokens[tokens.length - 1].type === TokenType.NUMBER ||
-            tokens[tokens.length - 1].type === TokenType.RIGHT_PAREN) &&
+            tokens[tokens.length - 1].type === TokenType.RIGHT_PAREN ||
+            tokens[tokens.length - 1].type === TokenType.POSTFIX_OP) &&
           isPostfixOperator(this.current)) {
           tokens.push({
             type: TokenType.POSTFIX_OP,
