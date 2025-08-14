@@ -109,7 +109,7 @@ const CustomItemsSearch = memo(({ handleOperator }: CustomItemsSearchProps) => {
 
           {isSearchDropdownOpen && (
             <div
-              className="absolute top-full left-0 right-0 mt-2 rounded-lg shadow-xl z-[60] max-h-64 overflow-hidden border transition-all duration-300 ease-out transform origin-top animate-in slide-in-from-top-2 fade-in-0 zoom-in-95"
+              className="absolute top-full left-0 right-0 mt-2 rounded-lg shadow-xl z-[100] max-h-64 overflow-hidden border transition-all duration-300 ease-out transform origin-top animate-in slide-in-from-top-2 fade-in-0 zoom-in-95"
               style={{
                 backgroundColor: theme.displayBackground,
                 borderColor: theme.border,
@@ -293,27 +293,72 @@ const Page: React.FC = () => {
     const container = containerRef.current;
     if (!container) return;
 
+    let startX = 0;
+    let startY = 0;
+    let isVerticalDrag = false;
+    let isDragStarted = false;
+
     const isButton = (target: Element) =>
       target.closest("button") ||
       target.closest('[role="button"]') ||
       target.closest("input") ||
       target.closest("textarea");
 
+    const isScrollableArea = (target: Element) =>
+      target.closest('.overflow-x-auto') ||
+      target.closest('[style*="overflow-x"]');
+
     const onTouchStart = (e: TouchEvent) => {
       if (isButton(e.target as Element)) return;
-      e.preventDefault();
-      startDrag(e.touches[0].clientY);
+      
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      isVerticalDrag = false;
+      isDragStarted = false;
     };
+    
     const onTouchMove = (e: TouchEvent) => {
       if (isButton(e.target as Element)) return;
-      e.preventDefault();
-      moveDrag(e.touches[0].clientY);
+      
+      const currentX = e.touches[0].clientX;
+      const currentY = e.touches[0].clientY;
+      const deltaX = Math.abs(currentX - startX);
+      const deltaY = Math.abs(currentY - startY);
+      
+      // Determine if this is a vertical or horizontal gesture
+      if (!isDragStarted && (deltaX > 10 || deltaY > 10)) {
+        isDragStarted = true;
+        isVerticalDrag = deltaY > deltaX;
+        
+        // If it's a horizontal gesture on a scrollable area, allow default scrolling
+        if (!isVerticalDrag && isScrollableArea(e.target as Element)) {
+          return;
+        }
+        
+        // If it's a vertical gesture, start the drag
+        if (isVerticalDrag) {
+          startDrag(startY);
+        }
+      }
+      
+      // Only prevent default and handle drag for vertical gestures
+      if (isDragStarted && isVerticalDrag) {
+        e.preventDefault();
+        moveDrag(currentY);
+      }
     };
-    const onTouchEnd = () => endDrag();
+    
+    const onTouchEnd = () => {
+      if (isDragStarted && isVerticalDrag) {
+        endDrag();
+      }
+      isDragStarted = false;
+      isVerticalDrag = false;
+    };
 
-    container.addEventListener("touchstart", onTouchStart, { passive: false });
+    container.addEventListener("touchstart", onTouchStart, { passive: true });
     container.addEventListener("touchmove", onTouchMove, { passive: false });
-    container.addEventListener("touchend", onTouchEnd);
+    container.addEventListener("touchend", onTouchEnd, { passive: true });
 
     return () => {
       container.removeEventListener("touchstart", onTouchStart);
@@ -428,13 +473,14 @@ const Page: React.FC = () => {
       </div>
 
       <div
-        className="absolute top-0 left-0 right-0 overflow-y-auto transition-transform duration-300"
+        className="absolute top-0 left-0 right-0 overflow-y-auto transition-transform duration-300 ease-out z-30"
         style={{
           height: "70vh",
           backgroundColor: theme.backgroundMain,
           transform: `translateY(-${
             100 - (historyOffset / getMaxHeight()) * 100
           }%)`,
+          WebkitOverflowScrolling: 'touch'
         }}
         onMouseDown={(e) => startDrag(e.clientY)}
       >
@@ -475,24 +521,24 @@ const Page: React.FC = () => {
       </div>
 
       <div
-        className="flex-1 flex flex-col justify-end p-6 pb-4 rounded-b-3xl transition-transform duration-300"
+        className="flex-1 flex flex-col justify-end p-6 pb-4 relative z-20 transition-transform duration-300 ease-out"
         style={{
           backgroundColor: theme.displayBackground,
           transform: `translateY(${historyOffset}px)`,
         }}
       >
-        <div className="text-right overflow-hidden">
+        <div className="text-right overflow-x-auto overflow-y-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div
-            className="text-4xl font-light tracking-tight min-h-[3rem] overflow-x-auto whitespace-nowrap scrollbar-hidden"
+            className="text-4xl font-light tracking-tight min-h-[3rem] whitespace-nowrap pb-1 text-right"
             style={{ color: theme.textSecondary }}
           >
             {equation || "0"}
           </div>
         </div>
 
-        <div className="text-right mt-2 overflow-hidden">
+        <div className="text-right mt-2 overflow-x-auto overflow-y-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div
-            className="text-6xl font-light tracking-tight min-h-[4rem] overflow-x-auto whitespace-nowrap scrollbar-hidden"
+            className="text-6xl font-light tracking-tight min-h-[4rem] whitespace-nowrap pb-1 text-right"
             style={{ color: isError ? "#ff6b6b" : theme.textPrimary }}
           >
             {result || "0"}
